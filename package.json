@@ -1,0 +1,19 @@
+{
+  "name": "wealthify",
+  "version": "1.0.0",
+  "description": "a wealth tech platform",
+  "main": "index.js",
+  "scripts": {
+    "start": "node serc/app.js",
+    "dev": "nodemon src/app.js"
+  },
+  "keywords": [
+    "nodejs",
+    "javascript"
+  ],
+  "author": "Yogesh Chaudhary",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
