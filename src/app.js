@@ -1,17 +1,38 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
-const User = require("./models/user");
+const { Buffer } = require("buffer");
+const {
+  userName,
+  password,
+  clientId,
+  clientSecret,
+} = require("./config/mf-central");
 
 app.use(express.json());
 
-app.post("/signUp", async (req, res) => {
-  const user = new User(req.body);
+app.get("/generateToken", async (req, res) => {
+  const base64String = Buffer.from(
+    `Basic ${clientId}:${clientSecret}`,
+    "utf8"
+  ).toString("base64");
   try {
-    await user.save();
-    res.send("User added successfully");
+    const resp = await fetch("https://uatservices.mfcentral.com/oauth/token", {
+      method: "POST",
+      body: JSON.stringify({
+        userName,
+        password,
+        grant_type: "password",
+      }),
+      headers: {
+        "Content-type": "application/x-www-form-urlencoded",
+        Authorization: base64String,
+      },
+    });
+    const data = await resp.json();
+    res.status(data.status).send(data);
   } catch (err) {
-    res.status(400).send("Error saving the user: " + err.message);
+    res.status(400).send("Something went wrong");
   }
 });
 
