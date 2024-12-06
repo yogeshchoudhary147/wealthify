@@ -1,7 +1,7 @@
 const express = require("express");
 const connectDB = require("./config/database");
 const app = express();
-const { Buffer } = require("buffer");
+const { getToken } = require("./utils");
 const {
   userName,
   password,
@@ -11,28 +11,20 @@ const {
 
 app.use(express.json());
 
-app.get("/generateToken", async (req, res) => {
-  const base64String = Buffer.from(
-    `Basic ${clientId}:${clientSecret}`,
-    "utf8"
-  ).toString("base64");
+// token generation
+app.post("/generateToken", async (req, res) => {
   try {
-    const resp = await fetch("https://uatservices.mfcentral.com/oauth/token", {
-      method: "POST",
-      body: JSON.stringify({
-        userName,
-        password,
-        grant_type: "password",
-      }),
-      headers: {
-        "Content-type": "application/x-www-form-urlencoded",
-        Authorization: base64String,
-      },
-    });
-    const data = await resp.json();
-    res.status(data.status).send(data);
+    const token = await getToken(
+      "https://devservices.mfcentral.com/oauth/token",
+      clientId,
+      clientSecret,
+      userName,
+      password
+    );
+    res.send({ token });
   } catch (err) {
-    res.status(400).send("Something went wrong");
+    console.error("Failed to get access token:", err.message);
+    res.status(400).send(`Error: ${err.message}`);
   }
 });
 
@@ -43,6 +35,6 @@ connectDB()
       console.log("Server is successfully listening on port 7777...");
     });
   })
-  .catch(() => {
-    console.log("Database cannot be connected");
+  .catch((err) => {
+    console.log("Database cannot be connected: " + err.message);
   });
