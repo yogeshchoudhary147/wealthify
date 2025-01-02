@@ -1,5 +1,5 @@
 const { CompactVerify, SignJWT } = require("jose");
-const { getPrivateKey, getPublicKey } = require("./jwkParsing");
+const JWKParser = require("./jwkParsing");
 
 class JSONWebSignature {
   /**
@@ -11,7 +11,7 @@ class JSONWebSignature {
   static async generate(payload, privateKey) {
     try {
       // Parse the private key
-      const rsaPrivateKey = getPrivateKey(privateKey);
+      const rsaPrivateKey = JWKParser.getPrivateKey(privateKey);
 
       // Create the JSON Web Signature (JWS)
       const jws = await new SignJWT({}) // Empty payload for detached signature
@@ -46,7 +46,7 @@ class JSONWebSignature {
   static async verify(payload, digitalSignature, publicKey) {
     try {
       // Parse the public key
-      const rsaPublicKey = getPublicKey(publicKey);
+      const rsaPublicKey = JWKParser.getPublicKey(publicKey);
 
       // Perform the verification
       const { protectedHeader, payload: verifiedPayload } = await CompactVerify(
@@ -66,4 +66,5 @@ class JSONWebSignature {
     }
   }
 }
-module.exports = { generateSignature, verifyDigitalSignature };
+
+module.exports = JSONWebSignature;

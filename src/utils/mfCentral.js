@@ -1,5 +1,6 @@
 const axios = require("axios");
-const CryptUtils = require("../utils/encryption");
+const CryptUtils = require("./encryption");
+const { JSONWebSignature } = require("./jsonWebSignature");
 
 class MFCentral {
   static async submitRequest(
@@ -20,7 +21,10 @@ class MFCentral {
       );
 
       // Generate the JWS signature
-      const mfcRequest = await generateSignature(encryptedText, privateKey);
+      const mfcRequest = await JSONWebSignature.generate(
+        encryptedText,
+        privateKey
+      );
 
       // Prepare HTTP headers
       const headers = {
@@ -34,7 +38,7 @@ class MFCentral {
 
       // Parse the response and verify the signature
       const responseBody = response.data;
-      const isVerified = verifySignature(
+      const isVerified = JSONWebSignature.verify(
         responseBody.response,
         responseBody.signature,
         publicKey
@@ -63,3 +67,5 @@ class MFCentral {
     }
   }
 }
+
+module.exports = MFCentral;

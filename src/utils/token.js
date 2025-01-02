@@ -1,34 +1,11 @@
 const axios = require("axios");
 const Token = require("../models/token");
-const {
-  UserName,
-  Password,
-  ClientId,
-  ClientSecret,
-} = require("../config/incrementedge.json");
+const config = require("../config/incrementedge.json");
 
 class TokenUtils {
-  static tokenGenerationUrl = "https://uatservices.mfcentral.com/oauth/token";
-  static clientId = ClientId;
-  static clientSecret = ClientSecret;
-  static userName = UserName;
-  static password = Password;
-
-  static async generateToken(
-    tokenGenerationUrl,
-    clientId,
-    clientSecret,
-    userName,
-    password
-  ) {
+  static async generateToken() {
     try {
-      const tokenResponse = await fetchToken(
-        tokenGenerationUrl,
-        clientId,
-        clientSecret,
-        userName,
-        password
-      );
+      const tokenResponse = await fetchToken();
       await saveTokenToDB(tokenResponse);
       return tokenResponse;
     } catch (error) {
@@ -37,17 +14,11 @@ class TokenUtils {
     }
   }
 
-  static async fetchToken(
-    tokenGenerationUrl,
-    clientId,
-    clientSecret,
-    userName,
-    password
-  ) {
+  static async fetchToken() {
     try {
       // Encode clientId and clientSecret to Base64
       const encodedCredentials = Buffer.from(
-        `${clientId}:${clientSecret}`
+        `${config.clientId}:${config.clientSecret}`
       ).toString("base64");
 
       // Set HTTP headers
@@ -58,13 +29,19 @@ class TokenUtils {
 
       // Prepare request body
       const body = new URLSearchParams({
-        username: userName,
-        password: password,
+        username: config.userName,
+        password: config.password,
         grant_type: "password",
       });
 
       // Send POST request to fetch the token
-      const response = await axios.post(tokenGenerationUrl, body, { headers });
+      const response = await axios.post(
+        "https://uatservices.mfcentral.com/oauth/token",
+        body,
+        {
+          headers,
+        }
+      );
       return response.data;
     } catch (error) {
       console.error("Error fetching access token:", error.message);
@@ -83,8 +60,7 @@ class TokenUtils {
         console.log("Active Token:", token);
         return token;
       } else {
-        console.log("No active token found or token has expired.");
-        return null;
+        throw new Error("No active token found or token has expired.");
       }
     } catch (error) {
       console.error("Error fetching token from db:", error.message);

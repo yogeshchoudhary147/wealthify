@@ -27,6 +27,7 @@ const tokenSchema = new mongoose.Schema({
   },
 });
 
+// TTL index to auto-delete expired tokens
 tokenSchema.index({ expirationDate: 1 }, { expireAfterSeconds: 0 });
 
 // Create the model
